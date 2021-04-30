@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Robot Control</title>
+
+    <link rel="stylesheet" type="text/css" href="style.css">
+
+    <script src="libraries/p5.min.js"></script>
+    <script src="libraries/p5.sound.min.js"></script>
+    <script src="libraries/draggable.js"></script>
+  </head>
+
+  <body>
+
+    <div class="grid-container">
+      <div class="header">
+        <h2>Header</h2>
+      </div>
+      
+      <div id="robot_arm_div" class="left" style="background-color:#aaa;"></div>
+      <div class="middle" style="background-color:#bbb;">
+        <img src="test.jpg"></img>
+      </div>  
+      <div id="movement_div" class="right" style="background-color:#ccc;"></div>
+      
+      <div class="footer">
+      <p>Footer</p>
+      </div>
+    </div>
+
+    <script src="robot_arm.js"></script>
+  </body>
+</html>

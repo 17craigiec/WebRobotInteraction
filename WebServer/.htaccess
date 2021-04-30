@@ -1,0 +1,4 @@
+AuthType Basic
+AuthName "Protected Website"
+AuthUserFile /home/craigie/git/WebRobotInteraction/WebServer/.htpassword
+Require valid-user
