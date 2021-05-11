@@ -1,10 +1,28 @@
 let drag_pnt;
 
+// Function used to send a GET request to index.js
+// This GET request actually ecnodes robot functionality
+function httpGetAsync(theUrl)
+{
+    var xmlHttp = new XMLHttpRequest();
+    xmlHttp.open("GET", theUrl, true); // true for asynchronous
+    xmlHttp.send(null);
+}
+
 function setup() {
   var myCanvas = createCanvas(500, 550);
   myCanvas.parent("robot_arm_div");
   w = 20;
   drag_pnt = new Draggable(250-w/2+1,350-w/2,w,w)
+
+  document.getElementById("arm_commit").addEventListener("click", moveArm);
+}
+
+function moveArm(){
+  x = drag_pnt.x+drag_pnt.w/2 - 252;
+  y = 328 - drag_pnt.y+drag_pnt.h/2;
+  command = "A_"+x.toString()+"_"+y.toString();
+  httpGetAsync(command);
 }
 
 function sleep(ms) {
@@ -152,6 +170,9 @@ turning_animation_counter = 0;
 animation_counter = 0;
 resolution = 100;
 
+last_command = '';
+
+
 function checkKey(e) {
 
   e = e || window.event;
@@ -232,7 +253,7 @@ function checkKeyUp(e) {
   button_pressed = up_pressed || down_pressed || left_pressed || right_pressed;
 }
 
-var t = function( p ) { 
+var t = function( p ) {
 
   function drawGrid() {
     p.stroke(200);
@@ -281,7 +302,7 @@ var t = function( p ) {
 
     if (button_pressed) {
       delay_counter = 0;
-    } else {      
+    } else {
       if (delay_counter > 5) {
         y_pos--;
         if (y_pos <= 0) {
@@ -321,7 +342,7 @@ var t = function( p ) {
         animateMotion(1, 1, 1, 1, 250, 250-y_pos);
       }
     }
-    
+
     p.pop();
   };
 
@@ -387,6 +408,11 @@ var t = function( p ) {
     drawArc();
     drawTurnArc();
     drawText();
+    command = 'D_'+x_pos.toString()+'_'+y_pos.toString();
+    if(command != last_command) {
+      httpGetAsync(command);
+    }
+    last_command = command;
   };
 };
 

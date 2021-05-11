@@ -6,6 +6,13 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+.commit-button {
+  padding: 3px;
+  margin: 4px;
+  position: relative;
+  left: 27.5%;
+}
+
 /* Style the header */
 .header {
   grid-area: header;
@@ -18,13 +25,13 @@ body {
 /* The grid container */
 .grid-container {
   display: grid;
-  grid-template-areas: 
-    'header header header' 
-    'left middle right' 
+  grid-template-areas:
+    'header header header'
+    'left middle right'
     'footer footer footer';
   background-color: #f1f1f1;
   /* grid-column-gap: 10px; - if you want gap between the columns */
-} 
+}
 
 .left,
 .middle,
@@ -70,11 +77,11 @@ body {
 /* Responsive layout - makes the three columns stack on top of each other instead of next to each other */
 @media (max-width: 600px) {
   .grid-container  {
-    grid-template-areas: 
-      'header header header header header header' 
-      'left left left left left left' 
-      'middle middle middle middle middle middle' 
-      'right right right right right right' 
+    grid-template-areas:
+      'header header header header header header'
+      'left left left left left left'
+      'middle middle middle middle middle middle'
+      'right right right right right right'
       'footer footer footer footer footer footer';
   }
 }
