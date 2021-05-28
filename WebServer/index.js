@@ -1,13 +1,14 @@
 var http = require('http');
 var fs = require('fs');
 
-const hostname = '127.0.0.1';
+//const hostname = '127.0.0.1';
+const hostname = '10.42.0.69';
 const port = 3000;
 
 const {spawn} = require('child_process');
 
 var server = http.createServer(function (request, response) {
-  if (request.url.includes("D_")) {
+  if (request.url[1] == 'D' && request.url.includes("D_")) {
     command = request.url.split("_");
 
     const childPythonDrive = spawn('python3', ['PythonScripts/DriveInterface.py', parseInt(command[1]), parseInt(command[2])]);
@@ -28,9 +29,29 @@ var server = http.createServer(function (request, response) {
     response.end();
   }
   else if (request.url.includes("A_")) {
+    console.log(request.url);
     command = request.url.split("_");
+    console.log(command[1]);
+    console.log(command[2]);
+    console.log("======================= PYTHON =======================");
 
-    const childPythonArm = spawn('python3', ['PythonScripts/ArmInterface.py', parseInt(command[1]), parseInt(command[2])]);
+    if(Number.isInteger(command[1]) || Number.isInteger(command[2])){
+      command[1] = parseInt(command[1]);
+      command[2] = parseInt(command[2]);
+    }
+    const childPythonArm = spawn('python3', ['PythonScripts/ArmInterface.py', command[1], command[2]]);
+
+    childPythonArm.stdout.on('data', (data) => {
+      console.log(data.toString());
+    });
+
+    childPythonArm.stderr.on('data', (data) => {
+      console.log(data.toString());
+    });
+
+    childPythonArm.on('close', (code) => {
+      console.log(code.toString());
+    });
 
     response.end();
   }

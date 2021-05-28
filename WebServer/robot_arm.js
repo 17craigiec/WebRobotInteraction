@@ -1,5 +1,14 @@
 let drag_pnt;
 
+// State variables
+arm_homed = false;
+arm_enabled = false;
+
+// State Colors
+ENABLED = '#00cc99'
+DISABLED = '#ff6666'
+IDLE = '#cccccc'
+
 // Function used to send a GET request to index.js
 // This GET request actually ecnodes robot functionality
 function httpGetAsync(theUrl)
@@ -16,13 +25,44 @@ function setup() {
   drag_pnt = new Draggable(250-w/2+1,350-w/2,w,w)
 
   document.getElementById("arm_commit").addEventListener("click", moveArm);
+  document.getElementById("home_arm").addEventListener("click", homeArm);
+  document.getElementById("toggle_actuation").addEventListener("click", toggleArm);
+  document.getElementById("toggle_actuation").style.background=DISABLED;
+  document.getElementById("arm_commit").style.background=IDLE;
+  document.getElementById("home_arm").style.background=IDLE;
 }
 
 function moveArm(){
   x = drag_pnt.x+drag_pnt.w/2 - 252;
   y = 328 - drag_pnt.y+drag_pnt.h/2;
   command = "A_"+x.toString()+"_"+y.toString();
-  httpGetAsync(command);
+  if(arm_homed){
+    httpGetAsync(command);
+  }
+}
+
+function homeArm(){
+  if(arm_enabled){
+    arm_homed = true;
+    document.getElementById("home_arm").style.background=IDLE;
+    httpGetAsync("A_H_H");
+  }
+}
+
+function toggleArm(){
+  if(arm_enabled){
+    httpGetAsync("A_D_D");
+    document.getElementById("toggle_actuation").style.background=DISABLED;
+    document.querySelector('#toggle_actuation').innerHTML = "Disabled";
+    document.getElementById("home_arm").style.background=IDLE;
+  }else{
+    arm_homed = false;
+    document.getElementById("home_arm").style.background=DISABLED;
+    httpGetAsync("A_E_E");
+    document.getElementById("toggle_actuation").style.background=ENABLED;
+    document.querySelector('#toggle_actuation').innerHTML = "Enabled";
+  }
+  arm_enabled = !arm_enabled;
 }
 
 function sleep(ms) {
