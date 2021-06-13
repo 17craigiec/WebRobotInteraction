@@ -9,6 +9,10 @@ ENABLED = '#00cc99'
 DISABLED = '#ff6666'
 IDLE = '#cccccc'
 
+// Arm Pose Memory
+last_x = 0;
+last_y = 0;
+
 // Function used to send a GET request to index.js
 // This GET request actually ecnodes robot functionality
 function httpGetAsync(theUrl)
@@ -35,9 +39,11 @@ function setup() {
 function moveArm(){
   x = drag_pnt.x+drag_pnt.w/2 - 252;
   y = 328 - drag_pnt.y+drag_pnt.h/2;
-  command = "A_"+x.toString()+"_"+y.toString();
+  command = "A_"+x.toString()+"_"+y.toString()+"_"+last_x.toString()+"_"+last_y.toString();
   if(arm_homed){
     httpGetAsync(command);
+    last_x = x;
+    last_y = y;
   }
 }
 
@@ -223,7 +229,7 @@ function checkKey(e) {
   if (e.keyCode == '38' || up_pressed) {
     // up arrow
     up_pressed = true;
-    if (y_pos == 0) {
+    if (y_pos <= 0) {
       x_pos = 0;
     }
 
@@ -235,12 +241,13 @@ function checkKey(e) {
   }
   if (e.keyCode == '40' || down_pressed) {
     // down arrow
-    down_pressed = true;
-    y_pos -= 2*spd;
+    y_pos -= spd;
 
-    if(y_pos < 0) {
-      y_pos = 0;
+    if(y_pos < -100) {
+      y_pos = -100;
     }
+    
+    down_pressed = true;
   }
   if (e.keyCode == '37' || left_pressed) {
     // left arrow
@@ -295,6 +302,9 @@ function checkKeyUp(e) {
 
 var t = function( p ) {
 
+  command = "D_0_0"
+  loop_cnt = 0;
+
   function drawGrid() {
     p.stroke(200);
     p.fill(120);
@@ -343,8 +353,9 @@ var t = function( p ) {
     if (button_pressed) {
       delay_counter = 0;
     } else {
-      if (delay_counter > 5) {
-        y_pos--;
+      if (delay_counter > 0) {
+        // y_pos--;
+        y_pos = 0
         if (y_pos <= 0) {
           x_pos = 0;
         }
@@ -352,11 +363,11 @@ var t = function( p ) {
       delay_counter++;
     }
 
-    if (y_pos <= 0) {
+    if (y_pos <= 0 && !down_pressed) {
       y_pos = 0;
     }
 
-    if (y_pos != 0 & x_pos > y_pos) {
+    if (y_pos > 0 & x_pos > y_pos) {
       x_pos = y_pos;
     }
 
@@ -448,11 +459,20 @@ var t = function( p ) {
     drawArc();
     drawTurnArc();
     drawText();
-    command = 'D_'+x_pos.toString()+'_'+y_pos.toString();
+    if(loop_cnt > 30 || (x_pos == 0 && y_pos == 0)){
+      loop_cnt = 0;
+      command = 'D_'+x_pos.toString()+'_'+y_pos.toString();
+    }
     if(command != last_command) {
+      if(x_pos == 0 && y_pos == 0) {
+        for (var i=0; i < 5; i+=1) {
+          httpGetAsync(command);
+        }
+      }
       httpGetAsync(command);
     }
     last_command = command;
+    loop_cnt += 1;
   };
 };
 

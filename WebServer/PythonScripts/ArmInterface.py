@@ -1,3 +1,4 @@
+from TrajectoryGenerator import TrajectoryGenerator
 import serial
 import math
 import time
@@ -38,45 +39,66 @@ if __name__ == '__main__':
             ser.write(print_str)
         # Otherwise Run Inverse Kinematics
         else:
-            px = float(sys.argv[1])*x_pixels_per_inch + x_offset
-            py = float(sys.argv[2])*y_pixels_per_inch + y_offset
+            end_x = float(sys.argv[1])*x_pixels_per_inch
+            end_y = float(sys.argv[2])*y_pixels_per_inch
+            start_x = float(sys.argv[3])*x_pixels_per_inch
+            start_y = float(sys.argv[4])*y_pixels_per_inch
 
-            print("X: "+str(float(sys.argv[1])*x_pixels_per_inch)+"   Y: "+str(float(sys.argv[2])*y_pixels_per_inch))
+            # Time per Interpolation and Calculation Freq
+            t_i = 10
+            f = 5
 
-            # Solve for theta 2
-            t2_xcomp = ( math.pow(px, 2)+math.pow(py, 2)-math.pow(d1, 2)-math.pow(d2, 2) )/( 2*d1*d2 )
-            t2_ycomp = -1*math.sqrt( 1 - math.pow(t2_xcomp, 2) )
-            theta_2 = math.atan2(t2_ycomp, t2_xcomp)
+            # Construct the trajectory generator objects
+            tg_x = TrajectoryGenerator(t_i, start_x, end_x)
+            tg_y = TrajectoryGenerator(t_i, start_y, end_y)
 
-            # Solve for theta 1
-            k1 = d1 + d2*math.cos(theta_2)
-            k2 = d2*math.sin(theta_2)
-            theta_1 = math.atan2(py, px)-math.atan2(k2, k1)
+            # Start The Interpolation loop here
+            # on each iteration the current target setpoint is calculated
+            while not tg_x.is_interpolation_complete() and not tg_y.is_interpolation_complete():
 
-            # Redefine the angles to act as the correct output
-            # Alpha (setpoint of the lower pivot)
-            alpha = math.pi - theta_1
-            # Beta (setpoint of the upper pivot)
-            beta = theta_1 + theta_2
+                target_x = tg_x.getPosition()
+                target_y = tg_y.getPosition()
 
-            # Calculate setpoints and transform them into ticks
-            t1_setpoint = int((alpha - t1_offset)*t_per_radian)
-            t2_setpoint = int((beta - t2_offset)*t_per_radian)
+                px = target_x + x_offset
+                py = target_y + y_offset
 
-            # Edge Case
-            if(float(sys.argv[1]) == 0 and float(sys.argv[2]) == 0):
-                t1_setpoint = 1
-                t2_setpoint = 1
+                print("X: "+str(float(sys.argv[1])*x_pixels_per_inch)+"   Y: "+str(float(sys.argv[2])*y_pixels_per_inch))
 
-            t1_setpoint = str(t1_setpoint)
-            t2_setpoint = str(t2_setpoint)
+                # Solve for theta 2
+                t2_xcomp = ( math.pow(px, 2)+math.pow(py, 2)-math.pow(d1, 2)-math.pow(d2, 2) )/( 2*d1*d2 )
+                t2_ycomp = -1*math.sqrt( 1 - math.pow(t2_xcomp, 2) )
+                theta_2 = math.atan2(t2_ycomp, t2_xcomp)
 
-            command = t1_setpoint+','+t2_setpoint+','
-            print_str = command.encode('utf-8')
-            ser.write(print_str)
+                # Solve for theta 1
+                k1 = d1 + d2*math.cos(theta_2)
+                k2 = d2*math.sin(theta_2)
+                theta_1 = math.atan2(py, px)-math.atan2(k2, k1)
 
-            print("Theta1: "+str(theta_1)+"   Theta2: "+str(theta_2))
-            print("Alpha: "+str(alpha*180/math.pi)+"   Beta: "+str(beta*180/math.pi))
+                # Redefine the angles to act as the correct output
+                # Alpha (setpoint of the lower pivot)
+                alpha = math.pi - theta_1
+                # Beta (setpoint of the upper pivot)
+                beta = theta_1 + theta_2
+
+                # Calculate setpoints and transform them into ticks
+                t1_setpoint = int((alpha - t1_offset)*t_per_radian)
+                t2_setpoint = int((beta - t2_offset)*t_per_radian)
+
+                # Edge Case
+                if(float(sys.argv[1]) == 0 and float(sys.argv[2]) == 0):
+                    t1_setpoint = 1
+                    t2_setpoint = 1
+
+                t1_setpoint = str(t1_setpoint)
+                t2_setpoint = str(t2_setpoint)
+
+                command = t1_setpoint+','+t2_setpoint+','
+                print_str = command.encode('utf-8')
+                ser.write(print_str)
+                time.sleep(1/f)
+
+                print("Theta1: "+str(theta_1)+"   Theta2: "+str(theta_2))
+                print("Alpha: "+str(alpha*180/math.pi)+"   Beta: "+str(beta*180/math.pi))
 
         # What is arduino saying
         for i in range(2):
